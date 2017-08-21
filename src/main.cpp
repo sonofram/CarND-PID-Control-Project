@@ -3,7 +3,8 @@
 #include "json.hpp"
 #include "PID.h"
 #include <math.h>
-
+#include <fstream>
+#include <iostream>
 // for convenience
 using json = nlohmann::json;
 
@@ -32,15 +33,30 @@ int main()
 {
   uWS::Hub h;
 
-  PID pid(50,0,0.2);
+  PID pid(50,0,0.1);
   // TODO: Initialize the pid variable.
-  //pid.Init(0.0,0.0,0.0);
+  //pid.Init(0.3,0.0001,3.0);
+  //pid.Init(0.015711,9.6854e-05,1.1903);
+  pid.Init(0.115711,9.6854e-05,1.1903);
+
+  //pid.Init(0.115711,0,0);
 
   //pid.Init(0.5,0.005,12.5);
+  //-----------------------------------
+  //pid.Init(0.5,0.01,9);
+  //pid.Init(0.3,0.0001,8);
+  //pid.Init(0.31,9e-05,3.1);
+  //pid.Init(0.31,0.000121,3.1);
+  //pid.Init(0.179,0.000221,2.1);
+  //pid.Init(0.134611, 0.000276054, 3.0903);
+  //Only Kp set
+  //pid.Init(0.5,0.02,14);
 
-  pid.Init(0.5,0.01,9);
+  //std::ofstream cte_data;
+  //cte_data.open("cte_data.txt");
 
 
+  //h.onMessage([&pid,&cte_data](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -70,11 +86,13 @@ int main()
         	  std::string reset_msg = "42[\"reset\",{}]";
         	  ws.send(reset_msg.data(), reset_msg.length(), uWS::OpCode::TEXT);
           }
-          pid.Twiddle(cte);
+
            *
            * */
 
+          //pid.Twiddle(cte);
           pid.UpdateError(cte);
+          //cte_data << cte << "|"<<speed<<"|"<<angle<<std::endl;
           steer_value = -(pid.Kp * pid.p_error) -(pid.Kd * pid.d_error) -(pid.Ki * pid.i_error);
           
           /*if(steer_value > 1.0){
@@ -89,9 +107,9 @@ int main()
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.1;
+          msgJson["throttle"] = 0.3;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
@@ -101,6 +119,8 @@ int main()
       }
     }
   });
+
+
 
   // We don't need this since we're not using HTTP but if it's removed the program
   // doesn't compile :-(
@@ -122,7 +142,13 @@ int main()
   });
 
   h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
-    ws.close();
+  //h.onDisconnection([&h,&cte_data](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
+	//std::cout << "Closing file and connection" << std::endl;
+	ws.close();
+	//if (cte_data.is_open()){
+	//	cte_data.close();
+	//}
+
     std::cout << "Disconnected" << std::endl;
   });
 

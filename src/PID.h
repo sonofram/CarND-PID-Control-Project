@@ -36,7 +36,7 @@ public:
   /*
    * probing value
    */
-  int dp[3];
+  double dp[3];
 
 
   /*
